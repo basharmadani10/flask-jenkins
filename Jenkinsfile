@@ -49,6 +49,12 @@ pipeline {
                     '''
                 }
             }
+          stage (' deployment')  {
+            sh '''
+
+            kubectl apply -f all.yml
+            '''
+          }
         }
     }
 }
