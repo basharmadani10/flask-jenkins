@@ -16,7 +16,7 @@ pipeline {
         }
         stage('Test') {
             steps {
-              sh 'python -m pytest'
+              sh 'python3 -m pytest'
             }
         }
         stage('Package code') {
