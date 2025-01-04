@@ -9,7 +9,7 @@ pipeline {
         stage('Clone') {
             steps {
                 // Clone the repository
-                git branch: 'main', url: 'https://github.com/basharmadani10/flask-jenkins.git'
+                git branch: 'master', url: 'https://github.com/basharmadani10/flask-jenkins.git'
             }
         }
         stage('Setup') {
@@ -21,7 +21,7 @@ pipeline {
         stage('Test') {
             steps {
                 // Run tests
-                sh "pytest"
+                sh "python3 -m pytest"
             }
         }
         stage('Dockerize') {
