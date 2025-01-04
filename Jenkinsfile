@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        USER_CREDENTIALS = credentials('dockerhub') // Assuming this is a Jenkins credential ID
+        USER_CREDENTIALS = credentials('dockerhub') // Jenkins credentials ID
     }
     
     stages {
@@ -21,13 +21,13 @@ pipeline {
         stage('Test') {
             steps {
                 // Run tests
-                sh " python3 -m pytest"
+                sh "python3 -m pytest"
             }
         }
         stage('Dockerize') {
             steps {
                 script {
-                    // Build the Docker image (make sure you have a Dockerfile in the repo)
+                    // Build the Docker image (ensure a Dockerfile is present in the repo)
                     sh '''
                     docker build -t mo1074/flask-app:v1 .
                     '''
@@ -36,25 +36,22 @@ pipeline {
         }
         stage('Push to Docker Hub') {
             steps {
-                // Use withCredentials to access Docker Hub credentials
                 withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                    // Log in to Docker Hub
+                    // Log in to Docker Hub and push the image
                     sh '''
                     echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-                    '''
-                    
-                    // Push the Docker image to Docker Hub
-                    sh '''
                     docker push mo1074/flask-app:v1
                     '''
                 }
             }
-          stage (' deployment')  {
-            sh '''
-
-            kubectl apply -f all.yml
-            '''
-          }
+        }
+        stage('Deployment') {
+            steps {
+                // Apply Kubernetes manifests
+                sh '''
+                kubectl apply -f all.yml
+                '''
+            }
         }
     }
 }
