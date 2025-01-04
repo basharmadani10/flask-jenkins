@@ -21,7 +21,7 @@ pipeline {
         stage('Test') {
             steps {
                 // Run tests
-                sh " python3 pytest"
+                sh " python3 -m pytest"
             }
         }
         stage('Dockerize') {
