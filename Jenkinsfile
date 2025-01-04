@@ -2,9 +2,12 @@ pipeline {
     agent any
 
     environment {
-        SERVER_IP = credentials('prod-server-ip')
+        USER_CREDENTIALS = credentials('username-password') // Assuming this is a Jenkins credential ID
     }
+    
     stages {
+     
+        
         stage('Setup') {
             steps {
                 sh "pip install -r requirements.txt"
@@ -15,33 +18,31 @@ pipeline {
                 sh "pytest"
             }
         }
-
         stage('Package code') {
             steps {
                 sh "zip -r myapp.zip ./* -x '*.git*'"
                 sh "ls -lart"
             }
         }
-
         stage('Deploy to Prod') {
             steps {
-                withCredentials([sshUserPrivateKey(credentialsId: 'ssh-key', keyFileVariable: 'MY_SSH_KEY', usernameVariable: 'username')]) {
-                    sh '''
-                    scp -i $MY_SSH_KEY -o StrictHostKeyChecking=no myapp.zip  ${username}@${SERVER_IP}:/home/ec2-user/
-                    ssh -i $MY_SSH_KEY -o StrictHostKeyChecking=no ${username}@${SERVER_IP} << EOF
-                        unzip -o /home/ec2-user/myapp.zip -d /home/ec2-user/app/
-                        source app/venv/bin/activate
-                        cd /home/ec2-user/app/
+                script {
+                    // Extract username and password from the credentials
+                    def user = USER_CREDENTIALS.username
+                    def password = USER_CREDENTIALS.password
+
+                    // Use sshpass to deploy the application
+                    sh """
+
+                        unzip -o /home/bm10/myapp.zip -d /home/bm10/app/
+                        source /home/bm10/app/venv/bin/activate
+                        cd /home/bm10/app/
                         pip install -r requirements.txt
                         sudo systemctl restart flaskapp.service
 EOF
-                    '''
+                    """
                 }
             }
         }
-       
-        
-       
-        
     }
 }
