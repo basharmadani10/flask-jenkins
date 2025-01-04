@@ -21,21 +21,12 @@ pipeline {
         stage('Test') {
             steps {
                 // Run tests
-                sh "python3 -m pytest"
+                sh " python3 pytest"
             }
         }
         stage('Dockerize') {
             steps {
                 script {
-                    // Extract username and password from the credentials
-                    def user = USER_CREDENTIALS.username
-                    def password = USER_CREDENTIALS.password
-
-                    // Log in to Docker Hub
-                    sh '''
-                    echo ${password} | docker login -u ${user} --password-stdin
-                    '''
-                    
                     // Build the Docker image (make sure you have a Dockerfile in the repo)
                     sh '''
                     docker build -t mo1074/flask-app:v1 .
@@ -45,7 +36,13 @@ pipeline {
         }
         stage('Push to Docker Hub') {
             steps {
-                script {
+                // Use withCredentials to access Docker Hub credentials
+                withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                    // Log in to Docker Hub
+                    sh '''
+                    echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+                    '''
+                    
                     // Push the Docker image to Docker Hub
                     sh '''
                     docker push mo1074/flask-app:v1
